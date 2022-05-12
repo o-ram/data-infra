@@ -7,6 +7,8 @@ metadata:
     name: gtfs-rt-archive
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       name: gtfs-rt-archive
@@ -28,6 +30,11 @@ spec:
               mountPath: /secrets/agencies-data
             - name: gcs-upload-svcacct
               mountPath: /secrets/gcs-upload-svcacct
+          resources:
+            requests:
+              memory: 2.0Gi
+            limits:
+              memory: 2.0Gi
       volumes:
         - name: agencies-data
           secret:
@@ -35,3 +42,17 @@ spec:
         - name: gcs-upload-svcacct
           secret:
             secretName: gcs-upload-svcacct
+      tolerations:
+        - key: resource-domain
+          operator: Equal
+          value: gtfsrt
+          effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: resource-domain
+                operator: In
+                values:
+                - gtfsrt
